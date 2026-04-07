@@ -36,6 +36,7 @@ const FormField = ({ label, name, value, onChange, modalMode, type = "text" }) =
 
 export default function ManageCustomers() {
   const [leads, setLeads] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // NEW: Search state
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,6 +71,14 @@ export default function ManageCustomers() {
       setIsLoading(false);
     }
   };
+
+  // NEW: Filter Logic for Name and PAN
+  const filteredLeads = leads.filter((lead) => {
+    const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.toLowerCase();
+    const pan = (lead.applicant_pan || "").toLowerCase();
+    const search = searchTerm.toLowerCase();
+    return fullName.includes(search) || pan.includes(search);
+  });
 
   const handleStatusUpdate = async () => {
     if (!selectedCustomer?.id || !tempStatus) return;
@@ -225,7 +234,13 @@ export default function ManageCustomers() {
         <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase tracking-widest">Manage Portfolio</h2>
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input type="text" placeholder="Quick search..." className="pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl w-72 focus:ring-4 focus:ring-blue-50 outline-none transition-all shadow-sm bg-white" />
+          <input 
+            type="text" 
+            placeholder="Search name or PAN..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl w-72 focus:ring-4 focus:ring-blue-50 outline-none transition-all shadow-sm bg-white" 
+          />
         </div>
       </div>
 
@@ -242,37 +257,45 @@ export default function ManageCustomers() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
-            {leads.map((lead) => (
-              <tr key={lead.id} className="hover:bg-slate-50/50 transition-colors group">
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">{lead.firstName?.charAt(0)}{lead.lastName?.charAt(0)}</div>
-                    <div>
-                      <p className="font-bold text-slate-900">{lead.firstName} {lead.lastName}</p>
-                      <p className="text-[10px] text-slate-400 font-mono">#{lead.system_uniquecust_id}</p>
+            {filteredLeads.length > 0 ? (
+              filteredLeads.map((lead) => (
+                <tr key={lead.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">{lead.firstName?.charAt(0)}{lead.lastName?.charAt(0)}</div>
+                      <div>
+                        <p className="font-bold text-slate-900">{lead.firstName} {lead.lastName}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">#{lead.system_uniquecust_id}</p>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td className="p-4 text-sm text-slate-600 uppercase font-mono">{lead.applicant_pan}</td>
-                <td className="p-4 font-bold text-slate-700">₹{lead.monthlyIncome || '0'}</td>
-                <td className="p-4 font-bold text-blue-700">₹{lead.requested_loan_amount || '0'}</td>
-                <td className="p-4">
-                   <span className={`px-2 py-1 rounded text-[10px] font-black uppercase shadow-sm ${
-                    lead.application_status === 'Approved' ? 'bg-green-100 text-green-700' :
-                    lead.application_status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {lead.application_status}
-                  </span>
-                </td>
-                <td className="p-4 text-right flex justify-end gap-1">
-                  <button onClick={() => openStatusModal(lead)} className="p-2 text-slate-400 hover:text-emerald-600 transition-all" title="View Application Tracker">
-                    <Activity size={18}/>
-                  </button>
-                  <button onClick={() => openModal(lead, 'view')} className="p-2 text-slate-400 hover:text-blue-600 transition-all" title="Full Details"><Eye size={18}/></button>
-                  <button onClick={() => openModal(lead, 'edit')} className="p-2 text-slate-400 hover:text-indigo-600 transition-all" title="Edit Lead"><Edit size={18}/></button>
+                  </td>
+                  <td className="p-4 text-sm text-slate-600 uppercase font-mono">{lead.applicant_pan}</td>
+                  <td className="p-4 font-bold text-slate-700">₹{lead.monthlyIncome || '0'}</td>
+                  <td className="p-4 font-bold text-blue-700">₹{lead.requested_loan_amount || '0'}</td>
+                  <td className="p-4">
+                    <span className={`px-2 py-1 rounded text-[10px] font-black uppercase shadow-sm ${
+                      lead.application_status === 'Approved' ? 'bg-green-100 text-green-700' :
+                      lead.application_status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {lead.application_status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-right flex justify-end gap-1">
+                    <button onClick={() => openStatusModal(lead)} className="p-2 text-slate-400 hover:text-emerald-600 transition-all" title="View Application Tracker">
+                      <Activity size={18}/>
+                    </button>
+                    <button onClick={() => openModal(lead, 'view')} className="p-2 text-slate-400 hover:text-blue-600 transition-all" title="Full Details"><Eye size={18}/></button>
+                    <button onClick={() => openModal(lead, 'edit')} className="p-2 text-slate-400 hover:text-indigo-600 transition-all" title="Edit Lead"><Edit size={18}/></button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="p-10 text-center text-slate-400 text-sm italic">
+                   No applicants found matching "{searchTerm}"
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
