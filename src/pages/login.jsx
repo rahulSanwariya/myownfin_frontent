@@ -1,13 +1,12 @@
-// src/pages/Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, Lock, ArrowRight, AlertCircle, User } from 'lucide-react';
+import { Lock, ArrowRight, AlertCircle, User } from 'lucide-react';
 import bgImage from '../assets/lgg.png';
+import myLogo from '../assets/rayonix_logo.png'; // ✅ Imported your logo
 
 export default function Login() {
   const navigate = useNavigate();
 
-  // ✅ UPDATED STATE (userId instead of email)
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -27,14 +26,13 @@ export default function Login() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: userId,     // 🔥 FIXED
+          userId: userId,
           password: password
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-
         console.log("LOGIN SUCCESS:", data);
 
         if (data.token) {
@@ -65,10 +63,15 @@ export default function Login() {
 
         {/* Header */}
         <div className="bg-blue-600 px-8 py-10 text-center">
-          <div className="inline-flex items-center justify-center p-3 bg-white/20 rounded-full mb-4 shadow-inner">
-            <Wallet className="h-8 w-8 text-white" />
+          <div className="inline-flex items-center justify-center p-3 bg-white rounded-full mb-4 shadow-md">
+            {/* ✅ Replaced Wallet Icon with your logo variable */}
+            <img 
+              src={myLogo} 
+              alt="Rayonix Logo" 
+              className="h-10 w-10 object-contain" 
+            />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Rapid System</h1>
+          <h1 className="text-2xl font-bold text-white mb-1">Rayonix</h1>
           <p className="text-blue-100 text-sm">Secure Financial Management System</p>
         </div>
 
