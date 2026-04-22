@@ -22,8 +22,8 @@ export default function Sidebar() {
     <aside 
       className={`bg-white border-r h-full hidden md:flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] relative ${
         isCollapsed ? 'w-16' : 'w-64' // ✅ Changed w-20 to w-16 for extra tight look
-      }`}
-    >
+      }`}  
+    >  
       {/* TOGGLE BUTTON - ✅ Changed top-20 to top-8 to move it higher */}
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
