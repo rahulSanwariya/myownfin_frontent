@@ -1,57 +1,37 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Lock, ArrowRight, AlertCircle, User } from 'lucide-react';
-import bgImage from '../assets/lgg.png';
-import myLogo from '../assets/rayonix_logo.png'; // ✅ Imported your logo
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Lock, ArrowRight, User } from "lucide-react";
+import bgImage from "../assets/lgg.png";
+import myLogo from "../assets/rayonix_logo.png";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../feature/auth/authSlice";
+import toast from "react-hot-toast"; // <-- IMPORT TOAST
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoading } = useSelector((state) => state.auth);
 
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [userId, setUserId] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrorMessage('');
 
-    console.log("LOGIN ATTEMPT:", userId);
-
-    try {
-      const response = await fetch('http://localhost:8080/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          password: password
-        }),
+    toast
+      .promise(dispatch(loginUser({ userId, password })).unwrap(), {
+        loading: "Authenticating...",
+        success: "Welcome back!",
+        error: (err) => err || "Invalid credentials",
+      })
+      .then(() => {
+        // Send EVERYONE to the dashboard.
+        // The ProtectedRoute and Dashboard UI will handle the role restrictions.
+        navigate("/dashboard");
+      })
+      .catch((err) => {
+        console.error("Login Error:", err);
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("LOGIN SUCCESS:", data);
-
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        } else if (data.jwt) {
-          localStorage.setItem('token', data.jwt);
-        }
-
-        navigate('/dashboard');
-      } else {
-        console.log("LOGIN FAILED");
-        setErrorMessage('Invalid User ID or Password');
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
-      setErrorMessage('Cannot connect to server');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   return (
@@ -60,19 +40,19 @@ export default function Login() {
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden relative z-10">
-
         {/* Header */}
         <div className="bg-blue-600 px-8 py-10 text-center">
           <div className="inline-flex items-center justify-center p-3 bg-white rounded-full mb-4 shadow-md">
-            {/* ✅ Replaced Wallet Icon with your logo variable */}
-            <img 
-              src={myLogo} 
-              alt="Rayonix Logo" 
-              className="h-10 w-10 object-contain" 
+            <img
+              src={myLogo}
+              alt="Rayonix Logo"
+              className="h-10 w-10 object-contain"
             />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">Rayonix</h1>
-          <p className="text-blue-100 text-sm">Secure Financial Management System</p>
+          <p className="text-blue-100 text-sm">
+            Secure Financial Management System
+          </p>
         </div>
 
         {/* Form */}
@@ -81,16 +61,7 @@ export default function Login() {
             Sign in to your account
           </h2>
 
-          {/* Error */}
-          {errorMessage && (
-            <div className="mb-6 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center text-red-600 text-sm">
-              <AlertCircle className="h-4 w-4 mr-2 shrink-0" />
-              {errorMessage}
-            </div>
-          )}
-
           <form onSubmit={handleLogin} className="space-y-5">
-
             {/* USER ID FIELD */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -137,13 +108,14 @@ export default function Login() {
               disabled={isLoading}
               className="w-full flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-70"
             >
-              {isLoading ? 'Authenticating...' : (
+              {isLoading ? (
+                "Authenticating..."
+              ) : (
                 <>
                   Sign In <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
             </button>
-
           </form>
         </div>
       </div>
